@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mau Gak?</title>
+<style>
+:root{
+  --bg:#fff1f4; --card:#ffffff; --text:#4a1d2c; --muted:#9b5a70;
+  --yes:#e8365d; --yes-text:#ffffff; --no:#e9dfe3; --no-text:#5b3a46; --shadow:rgba(232,54,93,.18);
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1d0f15; --card:#2b1720; --text:#ffe6ed; --muted:#d79bb0;
+    --yes:#ff5a80; --yes-text:#2b0a14; --no:#4a2f3a; --no-text:#f3d5de; --shadow:rgba(0,0,0,.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1d0f15; --card:#2b1720; --text:#ffe6ed; --muted:#d79bb0;
+  --yes:#ff5a80; --yes-text:#2b0a14; --no:#4a2f3a; --no-text:#f3d5de; --shadow:rgba(0,0,0,.4);
+  color-scheme: dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{
+  margin:0;height:100%;min-height:100%;background:var(--bg);color:var(--text);
+  font-family:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.card{
+  background:var(--card);border-radius:28px;padding:36px 28px;width:min(92%,420px);
+  text-align:center;box-shadow:0 20px 50px var(--shadow);position:relative;z-index:2;
+}
+.emoji{font-size:64px;line-height:1;animation:beat 1.2s infinite}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+h1{font-size:1.45rem;margin:18px 0 8px;line-height:1.35}
+p{color:var(--muted);margin:0 0 24px;font-size:.95rem}
+.btns{display:flex;gap:14px;justify-content:center;align-items:center;min-height:64px;flex-wrap:wrap}
+button{
+  font:inherit;font-weight:600;border:0;border-radius:999px;padding:14px 30px;cursor:pointer;
+  transition:transform .15s ease, left .25s ease, top .25s ease;
+}
+#yes{background:var(--yes);color:var(--yes-text);box-shadow:0 8px 20px var(--shadow);transform-origin:center}
+#yes:active{filter:brightness(.95)}
+#no{background:var(--no);color:var(--no-text);z-index:5;touch-action:manipulation}
+.hidden{display:none}
+.heart{position:fixed;bottom:-40px;z-index:1;pointer-events:none;animation:rise linear forwards}
+@keyframes rise{to{transform:translateY(-110vh) rotate(25deg);opacity:0}}
+</style>
+</head>
+<body>
+<div class="card" id="ask">
+  <div class="emoji">💌</div>
+  <h1>Mau gak jadi calon pacar dan istriku?</h1>
+  <p>Pikirkan baik-baik ya… 🥺</p>
+  <div class="btns">
+    <button id="yes">Iya 💖</button>
+    <button id="no">Tidak</button>
+  </div>
+</div>
+
+<div class="card hidden" id="done">
+  <div class="emoji">🥰</div>
+  <h1>Yeay! Terima kasih ya, sayang!</h1>
+  <p>Aku janji bakal jadi yang terbaik buat kamu. Sampai nanti di pelaminan 💍</p>
+</div>
+
+<script>
+(function(){
+  var yes=document.getElementById('yes'), no=document.getElementById('no');
+  var ask=document.getElementById('ask'), done=document.getElementById('done');
+  var lines=["Tidak","Yakin?","Coba lagi dong","Kok gitu sih 🥺","Gak bisa pencet!","Hehe, kena!","Kejar aku 🏃","Nyerah aja deh","Pencet Iya aja 😘"];
+  var n=0, scale=1;
+
+  function dodge(e){
+    if(e){e.preventDefault();}
+    n++;
+    no.textContent=lines[n%lines.length];
+    scale=Math.min(scale+0.12,2.2);
+    yes.style.transform="scale("+scale+")";
+    no.style.position="fixed";
+    var w=no.offsetWidth, h=no.offsetHeight, m=12;
+    var maxX=Math.max(m,window.innerWidth-w-m), maxY=Math.max(m,window.innerHeight-h-m);
+    var x,y,tries=0, r=yes.getBoundingClientRect();
+    do{
+      x=m+Math.random()*(maxX-m); y=m+Math.random()*(maxY-m); tries++;
+    }while(tries<20 && x<r.right+10 && x+w>r.left-10 && y<r.bottom+10 && y+h>r.top-10);
+    no.style.left=x+"px"; no.style.top=y+"px";
+  }
+
+  ["mouseenter","touchstart","pointerdown","click","focus"].forEach(function(ev){
+    no.addEventListener(ev,dodge,{passive:false});
+  });
+
+  function hearts(){
+    var set=["💖","💕","💗","❤️","💘","🌸"];
+    setInterval(function(){
+      var s=document.createElement('span');
+      s.className='heart';
+      s.textContent=set[Math.floor(Math.random()*set.length)];
+      s.style.left=Math.random()*100+"vw";
+      s.style.fontSize=(18+Math.random()*28)+"px";
+      s.style.animationDuration=(3+Math.random()*3)+"s";
+      document.body.appendChild(s);
+      setTimeout(function(){s.remove();},6500);
+    },180);
+  }
+
+  yes.addEventListener('click',function(){
+    ask.classList.add('hidden');
+    no.classList.add('hidden');
+    done.classList.remove('hidden');
+    hearts();
+  });
+})();
+</script>
+</body>
+</html>
